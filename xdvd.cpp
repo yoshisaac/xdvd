@@ -193,7 +193,7 @@ inline void db_swap_buffers(Display* d, Window win)
 inline void db_clear(XdbeBackBuffer back_buffer, Display* d, GC gc)
 {
   XSetForeground(d, gc, 0);
-  XFillRectangle(d, back_buffer, gc, 0, 0, g_disp_width, 768);
+  XFillRectangle(d, back_buffer, gc, 0, 0, g_disp_width, g_disp_height);
 }
 
 #define logoh 80
@@ -291,7 +291,7 @@ void draw()
     ++bounces;
   }
 
-  if (ylogo+logoh >= 768) {
+  if (ylogo+logoh >= g_disp_height) {
     ylogo_sub = true;
     ++bounces;
   }
@@ -302,7 +302,7 @@ void draw()
   }
 
   //corner detection
-  if (xlogo <= 0 && ylogo+logoh >= 768) {
+  if (xlogo <= 0 && ylogo+logoh >= g_disp_height) {
     ++corners;
     bounces = 0;
   }
@@ -314,7 +314,7 @@ void draw()
     ++corners;
     bounces = 0;
   }
-  if (xlogo+logow >= g_disp_width && ylogo+logoh >= 768) {
+  if (xlogo+logow >= g_disp_width && ylogo+logoh >= g_disp_height) {
     ++corners;
     bounces = 0;
   }
@@ -355,6 +355,9 @@ int main() {
 
   //random offset along the x axis
   xlogo = (rand()%g_disp_width)+1;
+
+  printf("width: %d\n", g_disp_width);
+  printf("height: %d\n", g_disp_height);
   
   XEvent xevt;
   XExposeEvent *eev;
