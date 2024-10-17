@@ -68,12 +68,8 @@ int fpsmeterc = 0;
 auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
 string fpsstring = "";
 
-int     shape_event_base;
-int     shape_error_base;
-
-// The window size
-int WIDTH  = 1920;
-int HEIGHT = 1080;
+int shape_event_base;
+int shape_error_base;
 
 long event_mask = (StructureNotifyMask|ExposureMask|PropertyChangeMask|EnterWindowMask|LeaveWindowMask|KeyRelease | ButtonPress|ButtonRelease|KeymapStateMask);
 
@@ -156,7 +152,7 @@ void createShapedWindow() {
     //unsigned long mask = CWBackPixel|CWBorderPixel|CWWinGravity|CWBitGravity|CWSaveUnder|CWEventMask|CWDontPropagate|CWOverrideRedirect;
     unsigned long mask = CWColormap | CWBorderPixel | CWBackPixel | CWEventMask | CWWinGravity|CWBitGravity | CWSaveUnder | CWDontPropagate | CWOverrideRedirect;
 
-    g_win = XCreateWindow(g_display, root, 0, 0, WIDTH, HEIGHT, 0, vinfo.depth, InputOutput, vinfo.visual, mask, &attr);
+    g_win = XCreateWindow(g_display, root, 0, 0, g_disp_width, g_disp_height, 0, vinfo.depth, InputOutput, vinfo.visual, mask, &attr);
 
     //XShapeCombineMask(g_display, g_win, ShapeBounding, 900, 500, g_bitmap, ShapeSet);
     XShapeCombineMask(g_display, g_win, ShapeInput, 0, 0, None, ShapeSet );
@@ -196,8 +192,8 @@ inline void db_clear(XdbeBackBuffer back_buffer, Display* d, GC gc)
   XFillRectangle(d, back_buffer, gc, 0, 0, g_disp_width, g_disp_height);
 }
 
-#define logoh 80
-#define logow 130
+#define logoh 160
+#define logow 260
 int xlogo = 0;
 bool xlogo_sub = false;
 int ylogo = 0;
@@ -260,7 +256,7 @@ void draw()
     XDrawString(g_display, g_back_buffer, gc, 10, 20, text, strlen(text));
   }
 
-  switch (corners%3) {
+  switch (bounces%3) {
   case 0:
     XSetForeground(g_display, gc, red.pixel);
     break;
@@ -274,8 +270,8 @@ void draw()
   XFillRectangle(g_display, g_back_buffer, gc, xlogo, ylogo, logow, logoh);
 
   //move the box
-  if (xlogo_sub) xlogo-=7;
-  else xlogo+=7;
+  if (xlogo_sub) xlogo-=12;
+  else xlogo+=12;
 
   if (ylogo_sub) ylogo-=6;
   else ylogo+=6;
@@ -285,17 +281,14 @@ void draw()
     xlogo_sub = true;
     ++bounces;
   }
-
   if (xlogo <= 0) {
     xlogo_sub = false;
     ++bounces;
   }
-
   if (ylogo+logoh >= g_disp_height) {
     ylogo_sub = true;
     ++bounces;
   }
-
   if (ylogo <= 0) {
     ylogo_sub = false;
     ++bounces;
@@ -304,19 +297,15 @@ void draw()
   //corner detection
   if (xlogo <= 0 && ylogo+logoh >= g_disp_height) {
     ++corners;
-    bounces = 0;
   }
   if (xlogo <= 0 && ylogo <= 0) {
     ++corners;
-    bounces = 0;
   }
   if (xlogo+logow >= g_disp_width && ylogo <= 0) {
     ++corners;
-    bounces = 0;
   }
   if (xlogo+logow >= g_disp_width && ylogo+logoh >= g_disp_height) {
     ++corners;
-    bounces = 0;
   }
   
   db_swap_buffers(g_display, g_win);
@@ -366,7 +355,7 @@ int main() {
 
   for (;;) {
     draw();
-    usleep(16000);
+    usleep(16000); //update 60 ish times a second
   }
 
   return 0;
