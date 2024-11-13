@@ -192,15 +192,15 @@ inline void db_clear(XdbeBackBuffer back_buffer, Display* d, GC gc)
   XFillRectangle(d, back_buffer, gc, 0, 0, g_disp_width, g_disp_height);
 }
 
-#define logoh 160
-#define logow 260
+#define logoh 90
+#define logow 210
 int xlogo = 0;
 bool xlogo_sub = false;
 int ylogo = 0;
 bool ylogo_sub = false;
 
-int corners = 0;
-int bounces = 0;
+unsigned int corners = 0;
+unsigned int bounces = 0;
 // Draw on the shaped window.
 // Yes it's possible, but only pixels that hits the mask are visible.
 // A hint: You can change the mask during runtime if you like.
@@ -230,8 +230,7 @@ void draw()
   XSetBackground (g_display, gc, white.pixel); 
   XSetForeground (g_display, gc, red.pixel);
 
-  db_clear(g_back_buffer, g_display, gc);
-  
+  db_clear(g_back_buffer, g_display, gc);  
 
   XFontStruct* font;
   // const char * fontname = "-misc-fixed-bold-r-normal--18-120-100-100-c-90-iso8859-2";
@@ -270,8 +269,8 @@ void draw()
   XFillRectangle(g_display, g_back_buffer, gc, xlogo, ylogo, logow, logoh);
 
   //move the box
-  if (xlogo_sub) xlogo-=12;
-  else xlogo+=12;
+  if (xlogo_sub) xlogo-=9;
+  else xlogo+=9;
 
   if (ylogo_sub) ylogo-=6;
   else ylogo+=6;
@@ -297,15 +296,19 @@ void draw()
   //corner detection
   if (xlogo <= 0 && ylogo+logoh >= g_disp_height) {
     ++corners;
+    printf("Corner count: %u", corners);
   }
   if (xlogo <= 0 && ylogo <= 0) {
     ++corners;
+    printf("Corner count: %u", corners);
   }
   if (xlogo+logow >= g_disp_width && ylogo <= 0) {
     ++corners;
+    printf("Corner count: %u", corners);
   }
   if (xlogo+logow >= g_disp_width && ylogo+logoh >= g_disp_height) {
     ++corners;
+    printf("Corner count: %u", corners);
   }
   
   db_swap_buffers(g_display, g_win);
