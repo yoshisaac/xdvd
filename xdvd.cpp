@@ -24,6 +24,7 @@
  */
 
 #include <iostream>
+#include <vector>
 #include <stdlib.h>
 #include <climits>
 #include <chrono>
@@ -39,13 +40,15 @@
 #include <X11/extensions/Xdbe.h>
 #include <math.h>
 
+#include "lodepng.h"
+
 // Events for normal windows
 #define BASIC_EVENT_MASK (StructureNotifyMask|ExposureMask|PropertyChangeMask|EnterWindowMask|LeaveWindowMask|KeyPressMask|KeyReleaseMask|KeymapStateMask)
 #define NOT_PROPAGATE_MASK (KeyPressMask|KeyReleaseMask|ButtonPressMask|ButtonReleaseMask|PointerMotionMask|ButtonMotionMask)
 
 using namespace std;
 
-Display *g_display;
+Display* g_display;
 int      g_screen;
 Screen*  g_display_screen;
 Window   g_win;
@@ -54,6 +57,7 @@ int      g_disp_width;
 int      g_disp_height;
 Pixmap   g_bitmap;
 Colormap g_colormap;
+XImage* g_image;
 
 XColor red;
 XColor blue;
@@ -83,7 +87,7 @@ void allow_input_passthrough(Window w) {
 }
 
 void list_fonts() {
-    char **fontlist;
+    char** fontlist;
     int num_fonts;
     fontlist = XListFonts (g_display, "*", 1000, &num_fonts);
     for (int i = 0; i < num_fonts; ++i) {
@@ -131,12 +135,12 @@ void createShapedWindow() {
     XColor bgcolor = createXColorFromRGBA(0, 0, 0, 0);
 
     Window root    = DefaultRootWindow(g_display);
-    Visual *visual = DefaultVisual(g_display, g_screen);
+    Visual* visual = DefaultVisual(g_display, g_screen);
 
     XVisualInfo vinfo;
     XMatchVisualInfo(g_display, DefaultScreen(g_display), 32, TrueColor, &vinfo);
     g_colormap = XCreateColormap(g_display, DefaultRootWindow(g_display), vinfo.visual, AllocNone);
-
+ 
     XSetWindowAttributes attr;
     attr.background_pixmap = None;
     attr.background_pixel = bgcolor.pixel;
@@ -176,6 +180,25 @@ void createShapedWindow() {
     green = createXColorFromRGBA(0, 255, 0, 255);
     black = createXColorFromRGBA(0, 0, 0, 200);
     white = createXColorFromRGBA(255, 255, 255, 255);
+
+    std::vector<unsigned char> image;
+    unsigned int width, height;
+    unsigned error = lodepng::decode(image, width, height, "DvD_logo.png");
+    if (error) {
+      printf("Error decoding DvD_logo.png\n");
+    }
+
+    char* data = (char*)malloc(width*height*4);
+    g_image = XCreateImage(g_display, visual, vinfo.depth, XYPixmap, 0, data, width, height, 32, 0);
+    
+    int count = 0;
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+	count+=3;
+	XPutPixel(g_image,x,y,createXColorFromRGBA(0, 0, 0, image[count++]).pixel);
+      }
+    }
+    
 }
 
 inline void db_swap_buffers(Display* d, Window win)
@@ -192,8 +215,8 @@ inline void db_clear(XdbeBackBuffer back_buffer, Display* d, GC gc)
   XFillRectangle(d, back_buffer, gc, 0, 0, g_disp_width, g_disp_height);
 }
 
-#define logoh 90
-#define logow 210
+#define logoh 255
+#define logow 512
 int xlogo = 0;
 bool xlogo_sub = false;
 int ylogo = 0;
@@ -235,7 +258,7 @@ void draw()
   XFontStruct* font;
   // const char * fontname = "-misc-fixed-bold-r-normal--18-120-100-100-c-90-iso8859-2";
   // const char * fontname = "rk24"; // ~ chinese shit
-  // list_fonts(); 
+  // list_fonts();
 
   const char* fontname = "9x15bold";
   font = XLoadQueryFont(g_display, fontname);
@@ -266,7 +289,8 @@ void draw()
     XSetForeground(g_display, gc, green.pixel);
   }
 
-  XFillRectangle(g_display, g_back_buffer, gc, xlogo, ylogo, logow, logoh);
+  //XFillRectangle(g_display, g_back_buffer, gc, xlogo, ylogo, logow, logoh);
+  XPutImage(g_display, g_back_buffer, gc, g_image, 0,0,xlogo,ylogo, logow, logoh);
 
   //move the box
   if (xlogo_sub) xlogo-=9;
@@ -352,9 +376,9 @@ int main() {
   printf("height: %d\n", g_disp_height);
   
   XEvent xevt;
-  XExposeEvent *eev;
-  XConfigureEvent *cev;
-  XKeyEvent *kev;
+  XExposeEvent* eev;
+  XConfigureEvent* cev;
+  XKeyEvent* kev;
 
   for (;;) {
     draw();

@@ -2,9 +2,11 @@ CC=g++
 
 MAKEFLAGS := --jobs=$(shell nproc)
 
+CFLAGS=-g -Wall -Wextra -pedantic -O3
+
 LDFLAGS=-L/usr/X11/lib -lX11 -lXext -lXfixes
 
-OBJ_FILES=xdvd.cpp.o
+OBJ_FILES=xdvd.cpp.o lodepng.cpp.o
 OBJS=$(addprefix obj/, $(OBJ_FILES))
 BIN=xdvd
 
