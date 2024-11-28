@@ -129,6 +129,13 @@ XColor createXColorFromRGBA(short red, short green, short blue, short alpha) {
     return color;
 }
 
+int logoh = 0;
+int logow = 0;
+int xlogo = 0;
+bool xlogo_sub = false;
+int ylogo = 0;
+bool ylogo_sub = false;
+
 // Create a window
 void createShapedWindow() {
     XSetWindowAttributes wattr;
@@ -198,7 +205,8 @@ void createShapedWindow() {
 	XPutPixel(g_image,x,y,createXColorFromRGBA(0, 0, 0, image[count++]).pixel);
       }
     }
-    
+    logoh = height;
+    logow = width;
 }
 
 inline void db_swap_buffers(Display* d, Window win)
@@ -214,13 +222,6 @@ inline void db_clear(XdbeBackBuffer back_buffer, Display* d, GC gc)
   XSetForeground(d, gc, 0);
   XFillRectangle(d, back_buffer, gc, 0, 0, g_disp_width, g_disp_height);
 }
-
-#define logoh 255
-#define logow 512
-int xlogo = 0;
-bool xlogo_sub = false;
-int ylogo = 0;
-bool ylogo_sub = false;
 
 unsigned int corners = 0;
 unsigned int bounces = 0;
